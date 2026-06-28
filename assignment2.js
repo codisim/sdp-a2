@@ -59,14 +59,12 @@ const setAddButtonState = (btn, selected) => {
 	}
 }
 
-// create card using innerHTML/template style
+// create card using template-style content and direct event listeners
 const makeCard = (drink) => {
 	const col = createEl('div','col-md-6 col-lg-4');
 	const card = createEl('div','card card-drink');
-	const idArg = JSON.stringify(drink.idDrink);
-	const nameArg = JSON.stringify(drink.strDrink || '');
-	const thumbArg = JSON.stringify(drink.strDrinkThumb || '');
 	const selected = isSelected(drink.idDrink);
+
 	card.innerHTML = `
 		<img src="${drink.strDrinkThumb||''}" class="card-img-top" alt="${drink.strDrink}">
 		<div class="card-body d-flex flex-column">
@@ -74,23 +72,21 @@ const makeCard = (drink) => {
 			<p class="mb-1"><small>Category: ${drink.strCategory || ''}</small></p>
 			<p class="mb-2">Instructions: ${truncate(drink.strInstructions,15)}</p>
 		</div>
-		<div class="card-footer d-flex justify-content-between">
-			<button class="btn btn-sm ${selected ? 'btn-secondary' : 'btn-outline-primary'}" ${selected ? 'disabled' : ''} onclick="handleAddToCart(${idArg}, this, ${nameArg}, ${thumbArg})">${selected ? 'Already Selected' : 'Add to Cart'}</button>
-			<button class="btn btn-sm btn-outline-success" onclick="handleShowDetails(${idArg})">Details</button>
-		</div>
 	`;
+
+	const footer = createEl('div','card-footer d-flex justify-content-between');
+	const addBtn = createEl('button', `btn btn-sm ${selected ? 'btn-secondary' : 'btn-outline-primary'}`, { text: selected ? 'Already Selected' : 'Add to Cart' });
+	if(selected) addBtn.disabled = true;
+	addBtn.addEventListener('click', () => addToGroup(drink, addBtn));
+
+	const detailsBtn = createEl('button','btn btn-sm btn-outline-success',{ text: 'Details' });
+	detailsBtn.addEventListener('click', () => showDetails(drink.idDrink));
+
+	footer.appendChild(addBtn);
+	footer.appendChild(detailsBtn);
+	card.appendChild(footer);
 	col.appendChild(card);
 	return col;
-}
-
-// global handlers for inline onclick usage
-window.handleAddToCart = (id, btn, name, thumb) => {
-	const drink = { idDrink: id, strDrink: name, strDrinkThumb: thumb };
-	addToGroup(drink, btn);
-}
-
-window.handleShowDetails = (id) => {
-	showDetails(id);
 }
 
 const renderDrinks = (drinks) => {
